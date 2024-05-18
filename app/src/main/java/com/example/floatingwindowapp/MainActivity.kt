@@ -1,6 +1,5 @@
 package com.example.floatingwindowapp
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.Context
@@ -8,52 +7,37 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.example.floatingwindowapp.Common.Companion.currDes
 
 class MainActivity : AppCompatActivity() {
-    private  lateinit var dialog: AlertDialog
+    private lateinit var dialog: AlertDialog
     private lateinit var btnMin: Button
-    private lateinit var edtDes: EditText
-
+    private lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         btnMin = findViewById(R.id.btnMin)
-        edtDes = findViewById(R.id.edt_des)
+        textView = findViewById(R.id.textView)
 
-
-        if(isServiceRunning()) {
-            stopService(Intent(this@MainActivity , FloatingWindowApp::class.java))
-
+        // Stop the service if it is already running
+        if (isServiceRunning()) {
+            stopService(Intent(this@MainActivity, FloatingWindowApp::class.java))
         }
-        edtDes.setText(currDes)
-        edtDes.setSelection(edtDes.text.toString().length)
-        edtDes.addTextChangedListener(object : TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
 
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                currDes = edtDes.text.toString()
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-
-            }
-
-        })
+        textView.text = currDes
 
         btnMin.setOnClickListener {
-            if(checkOverlayPermission()) {
+            if (checkOverlayPermission()) {
                 startService(Intent(this@MainActivity, FloatingWindowApp::class.java))
                 finish()
             } else {
@@ -77,21 +61,43 @@ class MainActivity : AppCompatActivity() {
         builder.setCancelable(true)
         builder.setTitle("Screen Overlay Permission Needed")
         builder.setMessage("Enable 'Display over the App' from settings")
-        builder.setPositiveButton("Open Settings", DialogInterface.OnClickListener{ dialog, which->
+        builder.setPositiveButton("Open Settings") { dialog, _ ->
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName")
             )
-            startActivityForResult(intent, RESULT_OK)
-        })
+            startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION)
+        }
         dialog = builder.create()
         dialog.show()
     }
 
     private fun checkOverlayPermission(): Boolean {
-        return if(Build.VERSION.SDK_INT> Build.VERSION_CODES.M) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Settings.canDrawOverlays(this)
-        } else return true
+        } else {
+            true
+        }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_OVERLAY_PERMISSION) {
+            if (checkOverlayPermission()) {
+                startService(Intent(this@MainActivity, FloatingWindowApp::class.java))
+                finish()
+            } else {
+                // Handle the case where the permission is not granted
+                AlertDialog.Builder(this)
+                    .setTitle("Permission Denied")
+                    .setMessage("The app cannot function without the overlay permission.")
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        }
+    }
+
+    companion object {
+        private const val REQUEST_OVERLAY_PERMISSION = 1
+    }
 }

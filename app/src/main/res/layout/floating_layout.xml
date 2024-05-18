@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blue"
-    >
+    android:background="@color/blue">
 
     <TextView
         android:id="@+id/head_txt"
@@ -13,36 +12,37 @@
         android:layout_height="wrap_content"
         android:text="Floating Window App"
         android:textSize="25sp"
-        android:layout_centerHorizontal="true"
         android:textColor="@color/green"
-        android:layout_marginTop="70dp"
-        android:layout_marginLeft="20dp"
-        />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="20dp" />
 
-    <EditText
-        android:id="@+id/edt_des"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
+    <TextView
+        android:id="@+id/floating_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Here, the text will be shown when you touch or type any text in other apps"
+        android:textSize="16sp"
+        android:textColorHint="@color/white"
+        android:textColor="@android:color/white"
         android:layout_below="@id/head_txt"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:hint="Description"
-        android:gravity="start"
-        android:padding="10dp"
-        android:textColor="@color/white"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
         android:background="@drawable/edt_des"
-        />
+        android:padding="15dp" />
+
 
     <Button
         android:id="@+id/btnMax"
         android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/edt_des"
+        android:layout_below="@id/floating_text_view"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:text="Maximize"
-        android:background="@drawable/btn_bg"
-        />
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/btn_bg" />
 
 </RelativeLayout>
