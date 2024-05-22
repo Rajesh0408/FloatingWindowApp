@@ -1,5 +1,6 @@
 package com.example.floatingwindowapp
 
+import android.accessibilityservice.AccessibilityService
 import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.Context
@@ -9,11 +10,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.Editable
-import android.text.TextWatcher
+import android.text.TextUtils
+import android.view.accessibility.AccessibilityManager
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.floatingwindowapp.Common.Companion.currDes
 
@@ -80,24 +81,64 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun isAccessibilityServiceEnabled(context: Context, service: Class<out AccessibilityService>): Boolean {
+        val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val enabledServices = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val colonSplitter = TextUtils.SimpleStringSplitter(':')
+        colonSplitter.setString(enabledServices)
+        while (colonSplitter.hasNext()) {
+            val componentName = colonSplitter.next()
+            if (componentName.equals(service.name, ignoreCase = true)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun showAccessibilitySettings() {
+        val builder = AlertDialog.Builder(this)
+        builder.setCancelable(true)
+        builder.setTitle("Accessibility Service Needed")
+        builder.setMessage("Please enable the accessibility service for this app")
+        builder.setPositiveButton("Open Settings") { dialog, _ ->
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            startActivityForResult(intent, REQUEST_ACCESSIBILITY_PERMISSION)
+        }
+        dialog = builder.create()
+        dialog.show()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_OVERLAY_PERMISSION) {
             if (checkOverlayPermission()) {
-                startService(Intent(this@MainActivity, FloatingWindowApp::class.java))
-                finish()
+                // Now request accessibility service
+                if (!isAccessibilityServiceEnabled(this, MyAccessibilityService::class.java)) {
+                    showAccessibilitySettings()
+                } else {
+                    startService(Intent(this@MainActivity, FloatingWindowApp::class.java))
+                    finish()
+                }
             } else {
-                // Handle the case where the permission is not granted
                 AlertDialog.Builder(this)
                     .setTitle("Permission Denied")
                     .setMessage("The app cannot function without the overlay permission.")
                     .setPositiveButton("OK", null)
                     .show()
             }
+        } else if (requestCode == REQUEST_ACCESSIBILITY_PERMISSION) {
+            if (isAccessibilityServiceEnabled(this, MyAccessibilityService::class.java)) {
+                startService(Intent(this@MainActivity, FloatingWindowApp::class.java))
+                finish()
+            } else {
+                Toast.makeText(this, "Accessibility Service is required for this app to function.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     companion object {
         private const val REQUEST_OVERLAY_PERMISSION = 1
+        private const val REQUEST_ACCESSIBILITY_PERMISSION = 2
     }
 }
+

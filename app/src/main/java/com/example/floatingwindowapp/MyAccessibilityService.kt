@@ -25,7 +25,7 @@ class MyAccessibilityService : AccessibilityService() {
         val source: AccessibilityNodeInfo? = event.source ?: return
 
         when (event.eventType) {
-            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED, AccessibilityEvent.TYPE_VIEW_CLICKED,  -> {
+            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED, AccessibilityEvent.TYPE_VIEW_CLICKED,-> {
                 val text = source?.text?.toString()
                 if (!text.isNullOrEmpty()) {
                     // Update the floating window with the captured text
